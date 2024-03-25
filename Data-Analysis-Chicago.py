@@ -1449,40 +1449,46 @@ low_quality_data = help_df[~help_df['ID'].isin(medium_quality_data['ID'])]
 percentage_low_quality_data = percentage(low_quality_data , df)
 
 
-# In[96]:
-
-
-low_quality_data.head(100)
-
-
 # Percentage of low quality data is 28.38 %
 
-# In[92]:
+# In[91]:
 
 
-print(percentage_low_quality_data+percentage_medium_quality_data+percentage_high_quality_data)
+print(percentage_low_quality_data + percentage_medium_quality_data + percentage_high_quality_data)
 
 
 # ### Exporting df for QGIS
 
-# In[93]:
+# In[92]:
 
 
-df_qgis_try = df[(df['BUSINESS ACTIVITY ID'] == '775') | (df['BUSINESS ACTIVITY ID'] == '638') |
+df_bus_act = df[(df['BUSINESS ACTIVITY ID'] == '775') | (df['BUSINESS ACTIVITY ID'] == '638') |
                 (df['BUSINESS ACTIVITY ID'] == '735') | (df['BUSINESS ACTIVITY ID'] == '781') |
                 (df['BUSINESS ACTIVITY ID'] == '904')]  
+df_bus_act.to_csv('df_bus_act.csv')
+print(len(df_bus_act))
 
 
 # In[94]:
 
 
-print(len(df_qgis_try))
+df_ward = df[(df['WARD'] == float(42)) | (df['WARD'] == float(1)) |
+                (df['WARD'] == float(12)) | (df['WARD'] == float(34)) |
+                (df['WARD'] == float(27))] 
+                                          
+df_ward.to_csv('df_ward.csv')  
+                                          
+print(len(df_ward))                                         
 
 
 # In[95]:
 
 
-df_qgis_try.to_csv('df_qgis_try.csv')
+df_bus_act = df[(df['LICENSE CODE'] == 1010) | (df['LICENSE CODE'] == 1006) |
+                (df['LICENSE CODE'] == 1475) | (df['LICENSE CODE'] == 1781) |
+                (df['LICENSE CODE'] == 4404)]  
+df_bus_act.to_csv('df_bus_act.csv')
+print(len(df_bus_act))
 
 
 # In[ ]:
