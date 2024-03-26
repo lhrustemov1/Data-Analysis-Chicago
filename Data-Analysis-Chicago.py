@@ -53,31 +53,45 @@ def is_valid_date(year, month, day):
     return (1 <= month <= 12 and 1 <= day <= day_count_for_month[month-1])
 
 
-# In[5]:
+# In[171]:
 
 
-def cleaning_nonblank_attributes(df_copy, should_print):
+def cleaning_nonblank_attributes(df_copy, should_print): 
     
     df_copy = df_copy.loc[df_copy['APPLICATION TYPE']!='C_SBA']
     if(should_print):
         print("Length after cleaning APPLICATION TYPE: ", len(df_copy))
+     
+    if( (df_copy['ID'] == '2863270-20220808').any()==False):
+        print("Izbacen poslije app type")
+        
+        
     df_copy = df_copy.loc[(df_copy['CITY']=='CHICAGO') & (df_copy['STATE']=='IL')]
     if(should_print):
         print("Length after cleaning CITY and STATE: ", len(df_copy))
+        
+    if((df_copy['ID'] == '2863270-20220808').any()==False):
+        print("Izbacen poslije city and state")
+        
     df_copy = df_copy[~df_copy['ADDRESS'].isin(redacted_address)]
     df_copy = df_copy[~df_copy['ADDRESS'].isin(unstandardized_address)]
     df_copy = df_copy[~df_copy['ADDRESS'].isin(not_all_uppercase_address)]
+    df_copy = df_copy[~df_copy['LEGAL NAME'].isin(not_all_uppercase_legal_names)]
+    
     if(should_print):
         print("Length after cleaning ADDRESS: ", len(df_copy))
+        
+    if((df_copy['ID'] == '2863270-20220808').any()==False):
+        print("Izbacen poslije address")
     
     return df_copy
 
 
-# In[6]:
+# In[189]:
 
 
 def ommiting_blank_from_high_quality_data (df_copy, should_print):
-    
+   
     df_copy.dropna(subset=['DOING BUSINESS AS NAME'], inplace=True)
     if(should_print):
         print("Length after ommiting blank DOING BUSINESS AS NAME attributes: ", len(df_copy))
@@ -85,7 +99,7 @@ def ommiting_blank_from_high_quality_data (df_copy, should_print):
     df_copy.dropna(subset=['ZIP CODE'], inplace=True)
     if(should_print):
         print("Length after ommiting blank ZIP CODE attributes: ", len(df_copy))
-
+        
     df_copy.dropna(subset=['WARD'], inplace=True)
     if(should_print):
         print("Length after ommiting blank WARD attributes: ", len(df_copy))
@@ -93,15 +107,15 @@ def ommiting_blank_from_high_quality_data (df_copy, should_print):
     df_copy.dropna(subset=['PRECINCT'], inplace=True)
     if(should_print):
         print("Length after ommiting blank PRECINCT attributes: ", len(df_copy))
-
+ 
     df_copy.dropna(subset=['WARD PRECINCT'], inplace=True)
     if(should_print):
         print("Length after ommiting blank WARD PRECINCT attributes: ", len(df_copy))
-
+        
     df_copy.dropna(subset=['POLICE DISTRICT'], inplace=True)
     if(should_print):
         print("Length after ommiting blank POLICE DISTRICT attributes: ", len(df_copy))
-
+        
     df_copy.dropna(subset=['BUSINESS ACTIVITY ID'], inplace=True)
     if(should_print):
         print("Length after ommiting blank BUSINESS ACTIVITY ID attributes: ", len(df_copy))
@@ -113,11 +127,11 @@ def ommiting_blank_from_high_quality_data (df_copy, should_print):
     df_copy.dropna(subset=['APPLICATION REQUIREMENTS COMPLETE'], inplace=True)
     if(should_print):
         print("Length after ommiting blank APPLICATION REQUIREMENTS COMPLETE attributes: ", len(df_copy))
-
+        
     df_copy.dropna(subset=['PAYMENT DATE'], inplace=True)
     if(should_print):
         print("Length after ommiting blank PAYMENT DATE attributes: ", len(df_copy))
-
+        
     df_copy.dropna(subset=['LICENSE TERM START DATE'], inplace=True)
     if(should_print):
         print("Length after ommiting blank LICENSE TERM START DATE attributes: ", len(df_copy))
@@ -129,14 +143,15 @@ def ommiting_blank_from_high_quality_data (df_copy, should_print):
     df_copy.dropna(subset=['LATITUDE'], inplace=True)
     if(should_print):
         print("Length after ommiting blank LATITUDE attributes: ", len(df_copy))
-
+        
     df_copy.dropna(subset=['LONGITUDE'], inplace=True)
     if(should_print):
         print("Length after ommiting blank LONGITUDE attributes: ", len(df_copy))
-
+        
     df_copy.dropna(subset=['LOCATION'], inplace=True)
     if(should_print):
         print("Length after ommiting blank LOCATIONE attributes: ", len(df_copy))
+
     
     return df_copy
 
@@ -149,7 +164,7 @@ def ommiting_blank_from_medium_quality_data(df_copy, should_print):
     df_copy.dropna(subset=['DOING BUSINESS AS NAME'], inplace=True)
     if(should_print):
         print("Length after ommiting blank DOING BUSINESS AS NAME attributes: ", len(df_copy))
-
+    
     df_copy.dropna(subset=['ZIP CODE'], inplace=True)
     if(should_print):
         print("Length after ommiting blank ZIP CODE attributes: ", len(df_copy))
@@ -178,15 +193,23 @@ def ommiting_blank_from_medium_quality_data(df_copy, should_print):
     
 
 
-# In[8]:
+# In[173]:
 
 
 def final_cleaning_high_quality_data(df_copy, should_print):
 
+    
+    df_copy = df_copy[~df_copy['DOING BUSINESS AS NAME'].isin(not_all_uppercase_bus_as_name)]
+    if(should_print):
+        print("Length after cleaning Doing Business as Name: ", len(df_copy))
+        
     df_copy = df_copy[~df_copy['ZIP CODE'].isin(invalid_zip_codes)] 
     if(should_print):
         print("Length after cleaning invalid ZIP CODE: ", len(df_copy))
 
+    if((df_copy['ID'] == '2863270-20220808').any()==False):
+        print("Izbacen poslije invalid zip code")
+        
     precincts_by_ward = [ # Ward 1 has 26 Precincts, Ward 2 has 25 Precincts, etc.
         26, 25, 27, 28, 25, 27, 31, 30, 30, 25, 
         23, 22, 40, 15, 20, 25, 29, 26, 36, 23, 
@@ -195,18 +218,20 @@ def final_cleaning_high_quality_data(df_copy, should_print):
         31, 24, 23, 21, 29, 23, 28, 35, 17, 28
     ]
 
-    index_to_drop = []
+    ID_to_drop = []
 
     for i in range(len(df_copy['WARD'])):
         index_of_precinct = int(df_copy.iloc[i]['WARD']) - 1 
         if( int(df_copy.iloc[i]['PRECINCT'])<0 or int(df_copy.iloc[i]['PRECINCT'])>precincts_by_ward[index_of_precinct]):
-            index_to_drop.append(i)
+            ID_to_drop.append(df_copy.iloc[i]['ID'])
         else:
             pass
 
+    df_copy_2 = df_copy[~df_copy['ID'].isin(ID_to_drop)].copy()
 
-    df_copy_2 = df_copy[~df_copy.index.isin(index_to_drop)].copy()
-
+    if((df_copy_2['ID'] == '2863270-20220808').any()==False):
+        print("Izbacen poslije invalid precinct")
+        
     if(should_print):
         print("Length after cleaning invalid PRECINCT: ", len(df_copy_2))
 
@@ -214,24 +239,38 @@ def final_cleaning_high_quality_data(df_copy, should_print):
     if(should_print):
         print("Length after cleaning invalid POLICE DISTRICT: ", len(df_copy_2))
 
+    if((df_copy_2['ID'] == '2863270-20220808').any()==False):
+        print("Izbacen poslije invalid pol district")
+        
+    df_copy_2 = df_copy_2[~df_copy_2['SSA'].isin(ssa_chicago_invalid)]
+    if(should_print):
+        print("Length after cleaning invalid SSA: ", len(df_copy_2))
 
     df_copy_2 = df_copy_2[~df_copy_2['LOCATION'].isin(invalid_loc)]
     if(should_print):
         print("Length after cleaning invalid LOCATION: ", len(df_copy_2))
     
+    if((df_copy_2['ID'] == '2863270-20220808').any()==False):
+        print("Izbacen poslije invalid loc")
+    
     return df_copy_2
 
 
-# In[9]:
+# In[187]:
 
 
 def final_cleaning_medium_quality_data(df_copy, should_print):
+    
+    df_copy = df_copy[~df_copy['DOING BUSINESS AS NAME'].isin(not_all_uppercase_bus_as_name)]
+    
+    if(should_print):
+        print("Length after cleaning Doing Business as Name: ", len(df_copy))
     
     df_copy = df_copy[~df_copy['ZIP CODE'].isin(invalid_zip_codes)] 
     if(should_print):
         print("Length after cleaning invalid ZIP CODE: ", len(df_copy))
     
-    precincts_by_ward = [ # Ward 1 has 26 Precincts, Ward 2 has 25 Precincts, etc.
+    precincts_by_ward = [ # Ward 1 has 26 Precincts, Ward 2 has 25 Precincts, Ward 3 has 27 Precincts, etc.
         26, 25, 27, 28, 25, 27, 31, 30, 30, 25, 
         23, 22, 40, 15, 20, 25, 29, 26, 36, 23, 
         29, 19, 33, 20, 17, 32, 29, 26, 24, 26, 
@@ -258,6 +297,10 @@ def final_cleaning_medium_quality_data(df_copy, should_print):
     df_copy_2 = df_copy_2[~df_copy_2['POLICE DISTRICT'].isin(invalid_pol_district)]
     if(should_print):
         print("Length after cleaning invalid POLICE DISTRICT: ", len(df_copy_2))
+    
+    df_copy_2 = df_copy_2[~df_copy_2['SSA'].isin(ssa_chicago_invalid)]
+    if(should_print):
+        print("Length after cleaning invalid SSA: ", len(df_copy_2))
     
     df_copy_2 = df_copy_2[~df_copy_2['LOCATION'].isin(invalid_loc)]
     if(should_print):
@@ -310,8 +353,7 @@ def make_table(c, f):
     for i in range(len(help_list1)):
         list2.append(str(help_list2[i])+' ('+ str(help_list1[i])+'%)')
 
-    # count (percentage)
-    # druga kolona naziv: Record count (Percentage)
+
     table = []
     for name, frequency in zip(list1, list2):
         table.append([name, frequency])
@@ -324,7 +366,7 @@ def make_table(c, f):
 
 # Columns (1, 2, 9) have mixed types error. Two solutions: low_memory = False or specify dtype. 
 # If I specify them - loading will crash when incorrect dtype appears
-df = pd.read_csv('Business_Licenses_-_Current_Active_20240312.csv', low_memory = False)
+df = pd.read_csv('C:/Users/lejla/OneDrive/Documents/GitHub/Data-Analysis-Chicago/Business_Licenses_-_Current_Active_20240312.csv', low_memory = False)
 
 
 # In[14]:
@@ -1378,22 +1420,28 @@ print(license_des.nunique())
 
 # # Filtering Algorithm and spliting data to High, Medium and Low quality
 
-# In[82]:
+# In[103]:
 
 
 # High quality data
 
 
-# In[83]:
+# In[190]:
 
 
 df_no_duplicates = df.drop_duplicates(subset=['ID'])
 print("Size before and after removing duplicates based on ID: ", len(df), ", ", len(df_no_duplicates))
 
 
+# In[191]:
+
+
+print(df_no_duplicates['ID'].nunique())
+
+
 # Checking non-blank attributes for invalid/unstandardized formats.
 
-# In[84]:
+# In[192]:
 
 
 df_1 = cleaning_nonblank_attributes(df_no_duplicates, 0)
@@ -1403,45 +1451,52 @@ high_quality_data = final_cleaning_high_quality_data(df_2, 0) # Omitting invalid
 percentage_high_quality_data = percentage(high_quality_data , df)
 
 
-# Percentage of high quality data is 44.10 %.
+# Percentage of high quality data is 31.40 %.
 
-# In[85]:
-
-
-high_quality_data.to_csv('high_quality_data.csv')
+# In[193]:
 
 
-# In[86]:
+not_high_quality = df[~df['ID'].isin(high_quality_data['ID'])]
+not_high_quality.to_csv('C:/Users/lejla/OneDrive/Documents/GitHub/Data-Analysis-Chicago/not_high_quality_data.csv')
+
+
+# In[194]:
+
+
+high_quality_data.to_csv('C:/Users/lejla/OneDrive/Documents/GitHub/Data-Analysis-Chicago/high_quality_data.csv')
+
+
+# In[195]:
 
 
 # Medium quality data
 
 
-# In[87]:
+# In[196]:
 
 
 df_4 = ommiting_blank_from_medium_quality_data(df_3, 0)
 medium_quality_data = final_cleaning_medium_quality_data(df_4, 0)
-medium_quality_data = medium_quality_data[~medium_quality_data['ID'].isin(high_quality_data['ID'])] 
+medium_quality_data_final = medium_quality_data[~medium_quality_data['ID'].isin(high_quality_data['ID'])] 
 # because restrictions are loose in medium quality, omit values that could be already high quality data from this one
-percentage_medium_quality_data = percentage(medium_quality_data, df)
+percentage_medium_quality_data = percentage(medium_quality_data_final, df)
 
 
-# Percentage of medium quality data is 27.52 %
+# Percentage of medium quality data is 27.87 % %.
 
-# In[88]:
-
-
-medium_quality_data.to_csv('medium_quality_data.csv')
+# In[197]:
 
 
-# In[89]:
+medium_quality_data_final.to_csv('C:/Users/lejla/OneDrive/Documents/GitHub/Data-Analysis-Chicago/medium_quality_data.csv')
+
+
+# In[198]:
 
 
 # Low quality data
 
 
-# In[90]:
+# In[199]:
 
 
 help_df = df[~df['ID'].isin(high_quality_data['ID'])] # help = low + medium, need to omit medium
@@ -1449,9 +1504,15 @@ low_quality_data = help_df[~help_df['ID'].isin(medium_quality_data['ID'])]
 percentage_low_quality_data = percentage(low_quality_data , df)
 
 
-# Percentage of low quality data is 28.38 %
+# In[200]:
 
-# In[91]:
+
+low_quality_data.to_csv('C:/Users/lejla/OneDrive/Documents/GitHub/Data-Analysis-Chicago/low_quality_data.csv')
+
+
+# Percentage of low quality data is 40.72 % %.
+
+# In[201]:
 
 
 print(percentage_low_quality_data + percentage_medium_quality_data + percentage_high_quality_data)
@@ -1459,7 +1520,7 @@ print(percentage_low_quality_data + percentage_medium_quality_data + percentage_
 
 # ### Exporting df for QGIS
 
-# In[92]:
+# In[93]:
 
 
 df_bus_act = df[(df['BUSINESS ACTIVITY ID'] == '775') | (df['BUSINESS ACTIVITY ID'] == '638') |
